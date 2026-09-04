@@ -1,0 +1,176 @@
+
+2362
+2363
+2364
+2365
+2366
+2367
+2368
+2369
+2370
+2371
+2372
+2373
+2374
+2375
+2376
+2377
+2378
+2379
+2380
+2381
+2382
+2383
+2384
+2385
+2386
+2387
+2388
+2389
+2390
+2391
+2392
+2393
+2394
+2395
+2396
+2397
+2398
+2399
+2400
+2401
+2402
+2403
+2404
+2405
+2406
+2407
+2408
+2409
+2410
+2411
+2412
+2413
+2414
+2415
+2416
+2417
+2418
+2419
+2420
+2421
+2422
+2423
+2424
+2425
+2426
+2427
+2428
+2429
+2430
+2431
+2432
+2433
+2434
+2435
+2436
+2437
+2438
+2439
+2440
+2441
+2442
+2443
+2444
+2445
+2446
+2447
+2448
+from pathlib import Path
+                                    '    );\n'
+                                    '    return result.rows;\n'
+                                    '  });\n'
+                                    '\n'
+                                    '  app.get("/v1/live/:roomId", async (request, reply) => {\n'
+                                    '    const parsed = roomParams.safeParse(request.params);\n'
+                                    '    if (!parsed.success) return reply.code(400).send({ error: "invalid_room_id" '
+                                    '});\n'
+                                    '\n'
+                                    '    const result = await db.query(\n'
+                                    '      `SELECT lr.*, u.id AS creator_user_id, u.display_name AS creator_name, '
+                                    'u.avatar_url\n'
+                                    '       FROM live_rooms lr\n'
+                                    '       JOIN creators c ON c.id = lr.creator_id\n'
+                                    '       JOIN users u ON u.id = c.user_id\n'
+                                    '       WHERE lr.id = $1`,\n'
+                                    '      [parsed.data.roomId],\n'
+                                    '    );\n'
+                                    '\n'
+                                    '    if (!result.rowCount) return reply.code(404).send({ error: "room_not_found" '
+                                    '});\n'
+                                    '    return result.rows[0];\n'
+                                    '  });\n'
+                                    '}\n',
+ 'services/api/src/routes/wallet.ts': 'import { FastifyInstance } from "fastify";\n'
+                                      'import { z } from "zod";\n'
+                                      'import { db } from "../db";\n'
+                                      '\n'
+                                      'const paramsSchema = z.object({ userId: z.string().uuid() });\n'
+                                      '\n'
+                                      'export async function walletRoutes(app: FastifyInstance) {\n'
+                                      '  app.get("/v1/wallet/:userId", async (request, reply) => {\n'
+                                      '    const parsed = paramsSchema.safeParse(request.params);\n'
+                                      '    if (!parsed.success) {\n'
+                                      '      return reply.code(400).send({ error: "invalid_user_id" });\n'
+                                      '    }\n'
+                                      '\n'
+                                      '    const result = await db.query(\n'
+                                      '      `SELECT purchased_balance, bonus_balance,\n'
+                                      '              purchased_balance + bonus_balance AS total_balance,\n'
+                                      '              updated_at\n'
+                                      '       FROM coin_wallets\n'
+                                      '       WHERE user_id = $1`,\n'
+                                      '      [parsed.data.userId],\n'
+                                      '    );\n'
+                                      '\n'
+                                      '    if (!result.rowCount) {\n'
+                                      '      return reply.code(404).send({ error: "wallet_not_found" });\n'
+                                      '    }\n'
+                                      '\n'
+                                      '    return result.rows[0];\n'
+                                      '  });\n'
+                                      '}\n',
+ 'services/api/tsconfig.json': '{\n'
+                               '  "compilerOptions": {\n'
+                               '    "target": "ES2022",\n'
+                               '    "module": "CommonJS",\n'
+                               '    "moduleResolution": "Node",\n'
+                               '    "outDir": "dist",\n'
+                               '    "rootDir": "src",\n'
+                               '    "strict": true,\n'
+                               '    "esModuleInterop": true,\n'
+                               '    "skipLibCheck": true\n'
+                               '  },\n'
+                               '  "include": ["src/**/*.ts"]\n'
+                               '}\n'}
+
+def main():
+    root = Path.cwd() / PROJECT_NAME
+    root.mkdir(parents=True, exist_ok=True)
+
+    for rel_path, content in FILES.items():
+        path = root / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+        print(f"created: {rel_path}")
+
+    print()
+    print(f"Veezo MFN V0.2 generated at: {root}")
+    print("Next:")
+    print(f"  cd {PROJECT_NAME}")
+    print("  git init")
+    print("  git add .")
+    print('  git commit -m "Veezo MFN V0.2"')
+
+if __name__ == "__main__":
+    main()
